@@ -72,6 +72,7 @@ async function loadProducts() {
 ========================================================= */
 let cart = loadCart();
 let searchTerm = "";
+let toastTimeout = null;
 
 /* =========================================================
    4. DOM REFS
@@ -86,6 +87,10 @@ const deliveryVal   = document.getElementById("deliveryVal");
 const totalVal      = document.getElementById("totalVal");
 const cartDrawer    = document.getElementById("cartDrawer");
 const drawerOverlay = document.getElementById("drawerOverlay");
+
+// Toast elements
+const toast         = document.getElementById("toast");
+const toastMessage  = document.getElementById("toastMessage");
 
 // Customer details inputs
 const custName    = document.getElementById("custName");
@@ -124,6 +129,27 @@ custPhone.addEventListener("focus", function() {
   this.style.borderColor = "";
   this.style.boxShadow = "";
 });
+
+/* =========================================================
+   4.6 TOAST NOTIFICATION
+========================================================= */
+function showToast(productName, ml) {
+  // Set the message
+  toastMessage.innerHTML = `<span class="toast-product-name">${productName}</span> — ${ml}ml added to cart!`;
+  
+  // Show the toast
+  toast.classList.add("show");
+  
+  // Clear any existing timeout
+  if (toastTimeout) {
+    clearTimeout(toastTimeout);
+  }
+  
+  // Auto-hide after 2.5 seconds
+  toastTimeout = setTimeout(() => {
+    toast.classList.remove("show");
+  }, 2500);
+}
 
 /* =========================================================
    5. RENDER PRODUCT GRID
@@ -204,7 +230,11 @@ function addToCart(productId, ml){
   }
   saveCart();
   renderCart();
-  openDrawer();
+  
+  // Show toast notification
+  showToast(product.name, ml);
+  
+  // Cart no longer opens automatically
 }
 
 function changeQty(key, delta){
