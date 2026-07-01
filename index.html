@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Decant Bechi — Price List</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">
+      <span class="brand-mark">✦</span>
+      <span class="brand-name">Decant <em>Bechi</em></span>
+    </div>
+    <button class="cart-btn" id="cartToggleBtn" aria-label="Open cart">
+      <span class="cart-label">Cart</span>
+      <span class="cart-count" id="cartCount">0</span>
+    </button>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+    <h1 class="hero-title">
+        Decant <span>Bechi</span>
+    </h1>
+    <p class="hero-tagline">
+        Small bottles. Big impressions.
+    </p>
+    <p class="hero-sub">
+        Carefully decanted designer and niche perfumes.
+        Choose your fragrance, choose your size, and we'll deliver it anywhere in Bangladesh.
+    </p>
+    <div class="hero-features">
+        <div>✓ Authentic Decants</div>
+        <div>✓ Secure Packaging</div>
+        <div>✓ Nationwide Delivery</div>
+    </div>
+</section>
+
+<!-- ============ SEARCH BAR ============ -->
+<section class="filter-bar">
+  <div class="search-group">
+    <input type="text" id="searchInput" placeholder="🔍 Search perfumes..." />
+  </div>
+</section>
+
+<!-- ============ PRODUCT GRID ============ -->
+<main class="grid-wrap">
+  <div class="product-grid" id="productGrid">
+    <!-- Cards injected by script.js -->
+  </div>
+  <p class="empty-state" id="emptyState" hidden>No perfumes match your search. Try another keyword.</p>
+</main>
+
+<footer class="site-footer">
+  <p>All prices in BDT — subject to change without notice.</p>
+</footer>
+
+<!-- ============ CART DRAWER ============ -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<aside class="cart-drawer" id="cartDrawer" aria-hidden="true">
+  <div class="drawer-header">
+    <h2>My Order</h2>
+    <button class="drawer-close" id="drawerCloseBtn" aria-label="Close cart">✕</button>
+  </div>
+
+  <div class="drawer-body">
+    <div class="cart-items" id="cartItems">
+      <p class="cart-empty-msg" id="cartEmptyMsg">Your bottle rack is empty.</p>
+    </div>
+
+    <div class="delivery-section">
+      <h3>Delivery</h3>
+      <label class="delivery-option">
+        <input type="radio" name="delivery" value="inside" checked>
+        <span class="delivery-label">Inside Dhaka</span>
+        <span class="delivery-price" id="insidePriceLabel">৳70</span>
+      </label>
+      <label class="delivery-option">
+        <input type="radio" name="delivery" value="outside">
+        <span class="delivery-label">Outside Dhaka</span>
+        <span class="delivery-price" id="outsidePriceLabel">৳130</span>
+      </label>
+    </div>
+
+    <div class="customer-section">
+      <h3>Your Details <span class="optional-tag">(shown in summary)</span></h3>
+      <input type="text" id="custName" placeholder="Name">
+      <input type="text" id="custPhone" placeholder="Phone number">
+      <input type="text" id="custAddress" placeholder="Delivery address">
+    </div>
+  </div>
+
+  <div class="drawer-summary">
+    <div class="summary-row">
+      <span>Subtotal</span>
+      <span id="subtotalVal">৳0</span>
+    </div>
+    <div class="summary-row">
+      <span>Delivery</span>
+      <span id="deliveryVal">৳0</span>
+    </div>
+    <div class="summary-row total-row">
+      <span>Total</span>
+      <span id="totalVal">৳0</span>
+    </div>
+
+    <div class="action-buttons">
+      <button class="btn btn-primary" id="sendOrderBtn">Send Order to Our Page</button>
+      <button class="btn btn-secondary" id="copyOrderBtn">Copy Order Summary</button>
+    </div>
+    <p class="copy-confirm" id="copyConfirm" hidden>Copied to clipboard ✓</p>
+  </div>
+</aside>
+
+<script src="script.js"></script>
+</body>
+</html>
