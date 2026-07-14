@@ -70,6 +70,46 @@ button:focus-visible, input:focus-visible, a:focus-visible{
 }
 .brand-name em{ font-style: italic; color: var(--amber-soft); font-weight: 400; }
 
+/* =========================================================
+   LOGO STYLES
+========================================================= */
+
+/* Header Logo */
+.brand-logo {
+  height: 40px;
+  width: auto;
+  display: block;
+}
+
+/* Hero Logo */
+.hero-logo {
+  max-width: 200px;
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+/* Hide the star icon when using logo */
+.brand .brand-mark {
+  display: none;
+}
+
+/* Hide the text logo when using image logo */
+.brand .brand-name {
+  display: none;
+}
+
+/* Responsive logo */
+@media (max-width: 700px) {
+  .hero-logo {
+    max-width: 280px;
+  }
+  .brand-logo {
+    height: 32px;
+  }
+}
+
 .cart-btn{
   position: relative;
   background: var(--surface-2);
@@ -111,7 +151,7 @@ button:focus-visible, input:focus-visible, a:focus-visible{
 
 .hero{
     max-width:760px;
-    margin:70px auto 60px;
+    margin:05px auto 10px;
     padding:0 24px;
     text-align:center;
 }

@@ -15,8 +15,8 @@ const DELIVERY_CHARGE = {
 const SHEET_ID = "1F-T5nMmYkalKJONVzt2bqIp1-vXa4HpVV5-jLCYs7M0";
 const SHEET_NAME = "Sheet1";
 
-// Google Apps Script Web App URL — for saving orders (UPDATED)
-const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzirnu1pXgjCH8p0KO2xIDKAHj2ruvI2yIUThKFqStoaJpkjpItEX1uWe0luDKE1i1Z/exec";
+// Google Apps Script Web App URL — for saving orders
+const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxIwvj4JBouhOhr5Y2vBEOsNJB_RQKBmtYmmiecHhjL1-yljJkwJf2IloQsfvxr5aGt/exec";
 
 /* =========================================================
    2. PRODUCT DATA — loaded directly from Google Sheets
