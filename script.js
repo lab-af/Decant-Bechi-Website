@@ -76,7 +76,9 @@ async function loadProducts() {
         gender: 'unisex',
         notes: notes || '',
         status: status,
-        sizes: sizes
+        sizes: sizes,
+        _selectedMl: null,
+        _qty: 0
       };
     });
     
@@ -166,8 +168,8 @@ custEmail.addEventListener("focus", function() {
 /* =========================================================
    4.6 TOAST NOTIFICATION
 ========================================================= */
-function showToast(productName, ml) {
-  toastMessage.innerHTML = `<span class="toast-product-name">${productName}</span> — ${ml}ml added to cart`;
+function showToast(productName, ml, qty) {
+  toastMessage.innerHTML = `<span class="toast-product-name">${productName}</span> — ${ml}ml x${qty} added to cart`;
   toast.classList.add("show");
   
   if (toastTimeout) {
@@ -198,14 +200,44 @@ function renderGrid(){
     btn.addEventListener("click", () => {
       if (btn.disabled) return;
       const { productId, ml } = btn.dataset;
-      addToCart(productId, Number(ml));
+      selectSize(productId, Number(ml));
+    });
+  });
+
+  productGrid.querySelectorAll(".qty-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const { productId, delta } = btn.dataset;
+      changeQtySelector(productId, parseInt(delta));
+    });
+  });
+
+  productGrid.querySelectorAll(".add-to-cart-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const productId = btn.dataset.productId;
+      addSelectedToCart(productId);
+    });
+  });
+
+  // "Select a size" button click → deselect size
+  productGrid.querySelectorAll(".select-size-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const productId = btn.dataset.productId;
+      const product = PRODUCTS.find(p => p.id === productId);
+      if (product) {
+        product._selectedMl = null;
+        product._qty = 0;
+        renderGrid();
+      }
     });
   });
 }
 
 function cardHTML(p){
   const isOut = p.status === "out";
+  const selectedMl = p._selectedMl;
+  const selectedSize = p.sizes.find(s => s.ml === selectedMl);
   const maxMl = p.sizes.length > 0 ? Math.max(...p.sizes.map(s => s.ml)) : 10;
+  const qty = p._qty || 0;
 
   const sizesHTML = p.sizes.map(s => {
     const fillPct = Math.round((s.ml / maxMl) * 100);
@@ -213,8 +245,9 @@ function cardHTML(p){
     const priceHTML = hasSale
       ? `<span class="strike">৳${s.price}</span><span class="now">৳${s.salePrice}</span>`
       : `<span>৳${s.price}</span>`;
+    const isSelected = (s.ml === selectedMl && qty > 0); // Only highlight if qty > 0
     return `
-      <button class="size-btn" data-product-id="${p.id}" data-ml="${s.ml}" ${isOut ? "disabled" : ""}>
+      <button class="size-btn ${isSelected ? 'selected' : ''}" data-product-id="${p.id}" data-ml="${s.ml}" ${isOut ? "disabled" : ""}>
         <div class="vial"><div class="vial-fill" style="height:${fillPct}%"></div></div>
         <span class="size-ml">${s.ml}ml</span>
         <span class="size-price">${priceHTML}</span>
@@ -227,6 +260,38 @@ function cardHTML(p){
 
   const noSizesHTML = p.sizes.length === 0 ? '<p style="color:var(--text-light);font-size:0.8rem;">No sizes available</p>' : '';
 
+  // Only show price if size is selected AND qty > 0
+  const selectedPriceHTML = (selectedSize && qty > 0) ? 
+    `<div class="selected-price">${selectedSize.salePrice ? '৳' + selectedSize.salePrice : '৳' + selectedSize.price}</div>` : '';
+
+  let actionHTML = '';
+  if (!isOut && p.sizes.length > 0) {
+    if (selectedSize && qty > 0) {
+      // Size selected AND qty > 0 → show quantity + Add to Cart
+      actionHTML = `
+        <div class="cart-actions">
+          <div class="qty-selector">
+            <button class="qty-btn" data-product-id="${p.id}" data-delta="-1">−</button>
+            <span class="qty-display">${qty}</span>
+            <button class="qty-btn" data-product-id="${p.id}" data-delta="1">+</button>
+          </div>
+          <button class="add-to-cart-btn" data-product-id="${p.id}">
+            Add to Cart
+          </button>
+        </div>
+      `;
+    } else {
+      // No size selected OR qty = 0 → show "Select a size" (disabled)
+      actionHTML = `
+        <div class="cart-actions">
+          <button class="select-size-btn" data-product-id="${p.id}" disabled>
+            Select a size
+          </button>
+        </div>
+      `;
+    }
+  }
+
   return `
     <article class="p-card ${isOut ? "out-of-stock" : ""}">
       <div class="p-card-top">
@@ -238,28 +303,91 @@ function cardHTML(p){
         ${badge}
       </div>
       <div class="size-row">${sizesHTML || noSizesHTML}</div>
+      ${selectedPriceHTML}
+      ${actionHTML}
     </article>`;
+}
+
+/* =========================================================
+   5.1 SIZE SELECTION & QUANTITY
+========================================================= */
+function selectSize(productId, ml) {
+  const product = PRODUCTS.find(p => p.id === productId);
+  if (!product) return;
+  
+  // If clicking the same size and qty > 0, deselect it
+  if (product._selectedMl === ml && product._qty > 0) {
+    product._selectedMl = null;
+    product._qty = 0;
+  } else {
+    product._selectedMl = ml;
+    product._qty = 1;  // Default to 1 when size is selected
+  }
+  renderGrid();
+}
+
+function changeQtySelector(productId, delta) {
+  const product = PRODUCTS.find(p => p.id === productId);
+  if (!product) return;
+  if (product._qty === undefined || product._qty === null) {
+    product._qty = 0;
+  }
+  
+  const newQty = product._qty + delta;
+  
+  if (newQty < 0) return; // Can't go negative
+  
+  if (newQty === 0) {
+    // When qty reaches 0, deselect the size
+    product._qty = 0;
+    product._selectedMl = null;
+  } else {
+    product._qty = newQty;
+  }
+  renderGrid();
+}
+
+function addSelectedToCart(productId) {
+  const product = PRODUCTS.find(p => p.id === productId);
+  if (!product) return;
+  
+  const selectedMl = product._selectedMl;
+  if (!selectedMl) {
+    alert("Please select a size first.");
+    return;
+  }
+  
+  const qty = product._qty || 0;
+  if (qty === 0) {
+    alert("Please increase quantity to add to cart.");
+    return;
+  }
+  
+  const size = product.sizes.find(s => s.ml === selectedMl);
+  if (!size) return;
+  
+  const key = cartKey(productId, selectedMl);
+
+  if (cart[key]) {
+    cart[key].qty += qty;
+  } else {
+    cart[key] = { productId, ml: selectedMl, qty: qty };
+  }
+  
+  saveCart();
+  renderCart();
+  showToast(product.name, selectedMl, qty);
+  
+  // Reset after adding
+  product._selectedMl = null;
+  product._qty = 0;
+  renderGrid();
 }
 
 /* =========================================================
    6. CART LOGIC
 ========================================================= */
 function cartKey(productId, ml){ return `${productId}|${ml}`; }
-
-function addToCart(productId, ml){
-  const product = PRODUCTS.find(p => p.id === productId);
-  const size = product.sizes.find(s => s.ml === ml);
-  const key = cartKey(productId, ml);
-
-  if (cart[key]){
-    cart[key].qty += 1;
-  } else {
-    cart[key] = { productId, ml, qty: 1 };
-  }
-  saveCart();
-  renderCart();
-  showToast(product.name, ml);
-}
 
 function changeQty(key, delta){
   if (!cart[key]) return;
