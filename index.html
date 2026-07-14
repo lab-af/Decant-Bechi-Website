@@ -21,7 +21,7 @@
 <header class="site-header">
   <div class="header-inner">
     <div class="brand">
-      <img src="https://raw.githubusercontent.com/lab-af/Decant-Bechi-Website/main/Untitled%20design%20(1).png" alt="Decant Bechi" class="brand-logo" />
+      <img src="https://raw.githubusercontent.com/lab-af/Decant-Bechi-Website/main/Untitled%20design%20(2).png" alt="Decant Bechi" class="brand-logo" />
     </div>
     <button class="cart-btn" id="cartToggleBtn" aria-label="Open cart">
       <span class="cart-label">Cart</span>
@@ -32,14 +32,23 @@
 
 <!-- ============ HERO ============ -->
 <section class="hero">
-    <h1 class="hero-title">
-      <img src="https://raw.githubusercontent.com/lab-af/Decant-Bechi-Website/main/Untitled%20design%20(1).png" alt="Decant Bechi" class="hero-logo" />
-    </h1>
-    
-    <div class="hero-features">
-        <div>Authentic Decants</div>
-        <div>Secure Packaging</div>
-        <div>Nationwide Delivery</div>
+    <div class="hero-content">
+        <span class="hero-badge">✦ Premium Decants</span>
+        <div class="hero-logo-wrapper">
+            <img src="https://raw.githubusercontent.com/lab-af/Decant-Bechi-Website/main/Untitled%20design%20(2).png" alt="Decant Bechi" class="hero-logo" />
+        </div>
+        <p class="hero-tagline">
+            Small bottles. Big impressions.
+        </p>
+        <p class="hero-sub">
+            Carefully decanted designer and niche perfumes.
+            Choose your fragrance, choose your size, and we'll deliver it anywhere in Bangladesh.
+        </p>
+        <div class="hero-features">
+            <div>✦ Authentic Decants</div>
+            <div>✦ Secure Packaging</div>
+            <div>✦ Nationwide Delivery</div>
+        </div>
     </div>
 </section>
 
@@ -52,10 +61,17 @@
 </div>
 
 <!-- ============ SEARCH BAR ============ -->
-<section class="filter-bar">
-  <div class="search-group">
-    <input type="text" id="searchInput" placeholder="Search perfumes..." />
-  </div>
+<section class="search-section">
+    <div class="search-container">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search for your fragrance..." />
+        <button class="search-btn" id="searchBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+        </button>
+    </div>
 </section>
 
 <!-- ============ PRODUCT GRID ============ -->
@@ -80,7 +96,7 @@
 
   <div class="drawer-body">
     <div class="cart-items" id="cartItems">
-      <p class="cart-empty-msg" id="cartEmptyMsg">Your bottle rack is empty.</p>
+      <p class="cart-empty-msg">Your bottle rack is empty.</p>
     </div>
 
     <div class="delivery-section">
@@ -107,7 +123,7 @@
     </div>
   </div>
 
-  <!-- ============ SUBTOTAL SECTION (MOVED TO BOTTOM) ============ -->
+  <!-- ============ SUBTOTAL SECTION ============ -->
   <div class="drawer-summary">
     <div class="summary-row">
       <span>Subtotal</span>
