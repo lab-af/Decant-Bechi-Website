@@ -37,7 +37,6 @@ body{
 button{ font-family: inherit; cursor: pointer; }
 input{ font-family: inherit; }
 
-/* focus visibility */
 button:focus-visible, input:focus-visible, a:focus-visible{
   outline: 2px solid var(--amber-soft);
   outline-offset: 2px;
@@ -85,7 +84,6 @@ button:focus-visible, input:focus-visible, a:focus-visible{
 }
 .cart-btn:hover{ border-color: var(--amber); }
 
-/* Add this to your styles.css */
 .cart-label {
   font-size: 0.85rem;
   font-weight: 600;
@@ -116,20 +114,6 @@ button:focus-visible, input:focus-visible, a:focus-visible{
     margin:70px auto 60px;
     padding:0 24px;
     text-align:center;
-}
-
-.hero-badge{
-    display:inline-block;
-    padding:8px 16px;
-    border:1px solid var(--line);
-    border-radius:999px;
-    color:var(--amber-soft);
-    font-size:.78rem;
-    font-family:var(--font-mono);
-    letter-spacing:.08em;
-    text-transform:uppercase;
-    margin-bottom:28px;
-    background:rgba(255,255,255,.02);
 }
 
 .hero-title{
@@ -352,6 +336,72 @@ color:#AA9B8C;
 }
 
 /* =========================================================
+   TOAST NOTIFICATION
+========================================================= */
+.toast {
+  position: fixed;
+  top: 80px;
+  right: -400px;
+  background: var(--surface);
+  border: 1px solid var(--amber);
+  border-radius: 16px;
+  padding: 16px 24px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  transition: right 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  max-width: 360px;
+  min-width: 280px;
+}
+
+.toast.show {
+  right: 24px;
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toast-icon {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--amber);
+}
+
+.toast-message {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.toast-product-name {
+  font-weight: 600;
+  color: var(--amber);
+}
+
+@media (max-width: 600px) {
+  .toast {
+    right: -100%;
+    max-width: calc(100vw - 32px);
+    min-width: unset;
+    padding: 14px 18px;
+    top: 70px;
+  }
+  
+  .toast.show {
+    right: 16px;
+    left: 16px;
+    width: auto;
+  }
+  
+  .toast-message {
+    font-size: 0.85rem;
+  }
+}
+
+/* =========================================================
    CART DRAWER
 ========================================================= */
 .drawer-overlay{
@@ -498,70 +548,5 @@ transform:translateY(-1px);
   }
   .search-group {
     max-width: none;
-  }
-}
-
-/* =========================================================
-   TOAST NOTIFICATION
-========================================================= */
-.toast {
-  position: fixed;
-  top: 80px;
-  right: -400px;
-  background: var(--surface);
-  border: 1px solid var(--amber);
-  border-radius: 16px;
-  padding: 16px 24px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-  z-index: 100;
-  transition: right 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-  max-width: 360px;
-  min-width: 280px;
-}
-
-.toast.show {
-  right: 24px;
-}
-
-.toast-content {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.toast-icon {
-  font-size: 1.3rem;
-}
-
-.toast-message {
-  font-family: var(--font-body);
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: var(--text);
-}
-
-.toast-product-name {
-  font-weight: 600;
-  color: var(--amber);
-}
-
-/* Mobile responsive */
-@media (max-width: 600px) {
-  .toast {
-    right: -100%;
-    max-width: calc(100vw - 32px);
-    min-width: unset;
-    padding: 14px 18px;
-    top: 70px;
-  }
-  
-  .toast.show {
-    right: 16px;
-    left: 16px;
-    width: auto;
-  }
-  
-  .toast-message {
-    font-size: 0.85rem;
   }
 }

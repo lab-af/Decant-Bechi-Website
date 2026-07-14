@@ -11,59 +11,82 @@ const DELIVERY_CHARGE = {
   outside: 130
 };
 
-// Google Sheets API URL (your Sheet.best endpoint)
-const SHEET_API_URL = "https://api.sheetbest.com/sheets/213d7098-d0eb-454a-b492-0ff5ed0f43fc";
+// Google Sheets Direct Method — for loading products
+const SHEET_ID = "1F-T5nMmYkalKJONVzt2bqIp1-vXa4HpVV5-jLCYs7M0";
+const SHEET_NAME = "Sheet1";
+
+// Google Apps Script Web App URL — for saving orders (UPDATED)
+const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzirnu1pXgjCH8p0KO2xIDKAHj2ruvI2yIUThKFqStoaJpkjpItEX1uWe0luDKE1i1Z/exec";
 
 /* =========================================================
-   2. PRODUCT DATA — loaded from Google Sheets
+   2. PRODUCT DATA — loaded directly from Google Sheets
 ========================================================= */
 let PRODUCTS = [];
 
 async function loadProducts() {
   try {
-    // Show loading state
     document.getElementById('productGrid').innerHTML = 
-      '<p style="text-align:center;padding:40px;">⏳ Loading perfumes...</p>';
+      '<p style="text-align:center;padding:40px;">Loading perfumes...</p>';
     
-    const response = await fetch(SHEET_API_URL);
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+    const response = await fetch(url);
+    const text = await response.text();
     
-    if (!response.ok) throw new Error('Failed to load products');
+    const jsonString = text.substring(text.indexOf('(') + 1, text.lastIndexOf(')'));
+    const json = JSON.parse(jsonString);
+    const rows = json.table.rows;
     
-    const data = await response.json();
+    if (!rows || rows.length === 0) {
+      throw new Error('No data found in the sheet');
+    }
     
-    // Convert sheet data to product format
-    PRODUCTS = data.map((row, index) => {
-      // Parse sizes from string like "2:350,5:750,10:1400,30:3600"
-      const sizeParts = row.sizes.split(',');
-      const sizes = sizeParts.map(part => {
-        const [ml, price] = part.split(':');
-        // Check if there's a sale price (e.g., "320/260")
-        if (price.includes('/')) {
-          const [regular, sale] = price.split('/');
-          return { ml: parseInt(ml), price: parseInt(regular), salePrice: parseInt(sale) };
-        }
-        return { ml: parseInt(ml), price: parseInt(price) };
-      });
+    PRODUCTS = rows.map((row, index) => {
+      const cells = row.c;
+      
+      const id = cells[0]?.v || `p${index + 1}`;
+      const name = cells[1]?.v || '';
+      const brand = cells[2]?.v || '';
+      const notes = cells[3]?.v || '';
+      const status = cells[4]?.v || 'available';
+      const sizesString = cells[5]?.v || '';
+      
+      let sizes = [];
+      if (sizesString) {
+        sizes = sizesString.split(',').filter(s => s.trim() !== '').map(part => {
+          const [ml, price] = part.split(':');
+          if (price && price.includes('/')) {
+            const [regular, sale] = price.split('/');
+            return { 
+              ml: parseInt(ml), 
+              price: parseInt(regular), 
+              salePrice: parseInt(sale) 
+            };
+          }
+          return { 
+            ml: parseInt(ml), 
+            price: parseInt(price) 
+          };
+        });
+      }
       
       return {
-        id: row.id || `p${index + 1}`,
-        name: row.name,
-        brand: row.brand,
-        gender: row.gender,
-        notes: row.notes,
-        status: row.status || 'available', // available or out
+        id: id,
+        name: name || 'Unnamed Product',
+        brand: brand || 'Unknown Brand',
+        gender: 'unisex',
+        notes: notes || '',
+        status: status,
         sizes: sizes
       };
     });
     
-    // Render everything
     renderGrid();
     renderCart();
     
   } catch (error) {
     console.error('Error loading products:', error);
     document.getElementById('productGrid').innerHTML = 
-      '<p style="text-align:center;padding:40px;">⚠️ Unable to load products. Please refresh or try again later.</p>';
+      '<p style="text-align:center;padding:40px;">Unable to load products. Please refresh or try again later.<br><small>Error: ' + error.message + '</small></p>';
   }
 }
 
@@ -88,32 +111,27 @@ const totalVal      = document.getElementById("totalVal");
 const cartDrawer    = document.getElementById("cartDrawer");
 const drawerOverlay = document.getElementById("drawerOverlay");
 
-// Toast elements
 const toast         = document.getElementById("toast");
 const toastMessage  = document.getElementById("toastMessage");
 
-// Customer details inputs
 const custName    = document.getElementById("custName");
 const custPhone   = document.getElementById("custPhone");
+const custEmail   = document.getElementById("custEmail");
 const custAddress = document.getElementById("custAddress");
 
 document.getElementById("insidePriceLabel").textContent = `৳${DELIVERY_CHARGE.inside}`;
 document.getElementById("outsidePriceLabel").textContent = `৳${DELIVERY_CHARGE.outside}`;
 
 /* =========================================================
-   4.5 PHONE VALIDATION — only numbers, exactly 11 digits
+   4.5 PHONE VALIDATION
 ========================================================= */
 custPhone.addEventListener("input", function(e) {
-  // Remove any non-digit characters
   this.value = this.value.replace(/\D/g, '');
-  
-  // Limit to 11 digits
   if (this.value.length > 11) {
     this.value = this.value.slice(0, 11);
   }
 });
 
-// Also validate on blur (when user leaves the field)
 custPhone.addEventListener("blur", function() {
   if (this.value.length > 0 && this.value.length !== 11) {
     this.style.borderColor = "#B85A36";
@@ -124,8 +142,23 @@ custPhone.addEventListener("blur", function() {
   }
 });
 
-// Remove error styling when user starts typing again
 custPhone.addEventListener("focus", function() {
+  this.style.borderColor = "";
+  this.style.boxShadow = "";
+});
+
+custEmail.addEventListener("blur", function() {
+  const email = this.value.trim();
+  if (email && !email.includes('@')) {
+    this.style.borderColor = "#B85A36";
+    this.style.boxShadow = "0 0 0 3px rgba(184, 90, 54, 0.2)";
+  } else {
+    this.style.borderColor = "";
+    this.style.boxShadow = "";
+  }
+});
+
+custEmail.addEventListener("focus", function() {
   this.style.borderColor = "";
   this.style.boxShadow = "";
 });
@@ -134,18 +167,13 @@ custPhone.addEventListener("focus", function() {
    4.6 TOAST NOTIFICATION
 ========================================================= */
 function showToast(productName, ml) {
-  // Set the message
-  toastMessage.innerHTML = `<span class="toast-product-name">${productName}</span> — ${ml}ml added to cart!`;
-  
-  // Show the toast
+  toastMessage.innerHTML = `<span class="toast-product-name">${productName}</span> — ${ml}ml added to cart`;
   toast.classList.add("show");
   
-  // Clear any existing timeout
   if (toastTimeout) {
     clearTimeout(toastTimeout);
   }
   
-  // Auto-hide after 2.5 seconds
   toastTimeout = setTimeout(() => {
     toast.classList.remove("show");
   }, 2500);
@@ -166,7 +194,6 @@ function renderGrid(){
   emptyState.hidden = filtered.length !== 0;
   productGrid.innerHTML = filtered.map(cardHTML).join("");
 
-  // wire up size buttons
   productGrid.querySelectorAll(".size-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       if (btn.disabled) return;
@@ -178,7 +205,7 @@ function renderGrid(){
 
 function cardHTML(p){
   const isOut = p.status === "out";
-  const maxMl = Math.max(...p.sizes.map(s => s.ml));
+  const maxMl = p.sizes.length > 0 ? Math.max(...p.sizes.map(s => s.ml)) : 10;
 
   const sizesHTML = p.sizes.map(s => {
     const fillPct = Math.round((s.ml / maxMl) * 100);
@@ -194,10 +221,11 @@ function cardHTML(p){
       </button>`;
   }).join("");
 
-  // ONLY TWO BADGES: Available or Out of Stock
   const badge = isOut
     ? `<span class="status-badge out">Out of Stock</span>`
     : `<span class="status-badge available">Available</span>`;
+
+  const noSizesHTML = p.sizes.length === 0 ? '<p style="color:var(--text-light);font-size:0.8rem;">No sizes available</p>' : '';
 
   return `
     <article class="p-card ${isOut ? "out-of-stock" : ""}">
@@ -209,7 +237,7 @@ function cardHTML(p){
         </div>
         ${badge}
       </div>
-      <div class="size-row">${sizesHTML}</div>
+      <div class="size-row">${sizesHTML || noSizesHTML}</div>
     </article>`;
 }
 
@@ -230,11 +258,7 @@ function addToCart(productId, ml){
   }
   saveCart();
   renderCart();
-  
-  // Show toast notification
   showToast(product.name, ml);
-  
-  // Cart no longer opens automatically
 }
 
 function changeQty(key, delta){
@@ -363,19 +387,19 @@ drawerOverlay.addEventListener("click", closeDrawer);
    9. SEARCH BINDING
 ========================================================= */
 
-// Search input
 document.getElementById("searchInput").addEventListener("input", (e) => {
   searchTerm = e.target.value.trim().toLowerCase();
   renderGrid();
 });
 
 /* =========================================================
-   10. ORDER SUMMARY TEXT — EXACT FORMAT
+   10. ORDER SUMMARY TEXT
 ========================================================= */
 function buildOrderSummary(){
   const keys = Object.keys(cart);
   const name = document.getElementById("custName").value.trim();
   const phone = document.getElementById("custPhone").value.trim();
+  const email = document.getElementById("custEmail").value.trim();
   const address = document.getElementById("custAddress").value.trim();
   const deliveryMethod = getGetDeliveryLabel();
   const subtotal = getSubtotal();
@@ -384,33 +408,31 @@ function buildOrderSummary(){
 
   let lines = [];
   
-  // Header
   lines.push("Decant Bechi");
   lines.push("Order Summary");
-  lines.push("─────────────────────");
+  lines.push("---------------------");
   lines.push("");
   
-  // Customer details
-  if (name) lines.push(`Name: ${name}`);
-  if (phone) lines.push(`Phone: ${phone}`);
-  if (address) lines.push(`Address: ${address}`);
-  if (name || phone || address) lines.push("");
+  if (name) lines.push("Name: " + name);
+  if (phone) lines.push("Phone: " + phone);
+  if (email) lines.push("Email: " + email);
+  if (address) lines.push("Address: " + address);
+  if (name || phone || email || address) lines.push("");
   
-  // Order items
   keys.forEach(key => {
     const entry = cart[key];
     const product = PRODUCTS.find(p => p.id === entry.productId);
     const size = product.sizes.find(s => s.ml === entry.ml);
     const unitPrice = getUnitPrice(product, size);
     const lineTotal = unitPrice * entry.qty;
-    lines.push(`${product.name} (${product.brand}) — ${entry.ml}ml x${entry.qty} = ${lineTotal} tk`);
+    lines.push(product.name + " (" + product.brand + ") — " + entry.ml + "ml x" + entry.qty + " = " + lineTotal + " tk");
   });
   
   lines.push("");
-  lines.push(`Subtotal: ${subtotal} tk`);
-  lines.push(`Delivery (${deliveryMethod}): ${delivery} tk`);
-  lines.push(`Total: ${total} tk`);
-  lines.push("─────────────────────");
+  lines.push("Subtotal: " + subtotal + " tk");
+  lines.push("Delivery (" + deliveryMethod + "): " + delivery + " tk");
+  lines.push("Total: " + total + " tk");
+  lines.push("---------------------");
   
   return lines.join("\n");
 }
@@ -420,69 +442,170 @@ function getGetDeliveryLabel(){
 }
 
 /* =========================================================
-   11. VALIDATION — Check if all fields are filled
+   11. VALIDATION
 ========================================================= */
 function validateOrder() {
   const name = document.getElementById("custName").value.trim();
   const phone = document.getElementById("custPhone").value.trim();
+  const email = document.getElementById("custEmail").value.trim();
   const address = document.getElementById("custAddress").value.trim();
   
-  // Check if cart is empty
   if (Object.keys(cart).length === 0) {
-    alert("❌ Your bottle rack is empty — add a size first.");
+    alert("Your bottle rack is empty. Please add a size first.");
     return false;
   }
   
-  // Check if name is empty
   if (!name) {
-    alert("❌ Please enter your name.");
+    alert("Please enter your name.");
     document.getElementById("custName").focus();
     document.getElementById("custName").style.borderColor = "#B85A36";
     return false;
   }
   
-  // Check if phone is empty
   if (!phone) {
-    alert("❌ Please enter your phone number.");
+    alert("Please enter your phone number.");
     document.getElementById("custPhone").focus();
     document.getElementById("custPhone").style.borderColor = "#B85A36";
     return false;
   }
   
-  // Check if phone is exactly 11 digits
   if (phone.length !== 11) {
-    alert("❌ Phone number must be exactly 11 digits.");
+    alert("Phone number must be exactly 11 digits.");
     document.getElementById("custPhone").focus();
     document.getElementById("custPhone").style.borderColor = "#B85A36";
     return false;
   }
   
-  // Check if address is empty
+  if (!email) {
+    alert("Please enter your email address.");
+    document.getElementById("custEmail").focus();
+    document.getElementById("custEmail").style.borderColor = "#B85A36";
+    return false;
+  }
+  
+  if (!email.includes('@') || !email.includes('.')) {
+    alert("Please enter a valid email address (e.g., name@example.com).");
+    document.getElementById("custEmail").focus();
+    document.getElementById("custEmail").style.borderColor = "#B85A36";
+    return false;
+  }
+  
   if (!address) {
-    alert("❌ Please enter your delivery address.");
+    alert("Please enter your delivery address.");
     document.getElementById("custAddress").focus();
     document.getElementById("custAddress").style.borderColor = "#B85A36";
     return false;
   }
   
-  // Clear any error styling
   document.getElementById("custName").style.borderColor = "";
   document.getElementById("custPhone").style.borderColor = "";
+  document.getElementById("custEmail").style.borderColor = "";
   document.getElementById("custAddress").style.borderColor = "";
   
   return true;
 }
 
 /* =========================================================
-   12. SEND / COPY ACTIONS (with validation)
+   12. SEND / COPY ACTIONS 
 ========================================================= */
-document.getElementById("sendOrderBtn").addEventListener("click", () => {
+
+async function sendOrderToSheet(orderData) {
+  try {
+    const response = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(orderData)
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Webhook error:', error);
+    return false;
+  }
+}
+
+function buildOrderData() {
+  const keys = Object.keys(cart);
+  const name = document.getElementById("custName").value.trim();
+  const phone = document.getElementById("custPhone").value.trim();
+  const email = document.getElementById("custEmail").value.trim();
+  const address = document.getElementById("custAddress").value.trim();
+  const deliveryMethod = getGetDeliveryLabel();
+  const subtotal = getSubtotal();
+  const delivery = keys.length ? DELIVERY_CHARGE[getDeliveryMethod()] : 0;
+  const total = subtotal + delivery;
+  
+  const items = keys.map(key => {
+    const entry = cart[key];
+    const product = PRODUCTS.find(p => p.id === entry.productId);
+    const size = product.sizes.find(s => s.ml === entry.ml);
+    const unitPrice = getUnitPrice(product, size);
+    return product.name + " (" + product.brand + ") — " + entry.ml + "ml x" + entry.qty + " = " + (unitPrice * entry.qty) + " tk";
+  }).join('\n');
+  
+  return {
+    timestamp: new Date().toLocaleString(),
+    name: name,
+    phone: phone,
+    email: email,
+    address: address,
+    deliveryMethod: deliveryMethod,
+    items: items,
+    subtotal: subtotal,
+    deliveryCharge: delivery,
+    total: total
+  };
+}
+
+document.getElementById("sendOrderBtn").addEventListener("click", async () => {
   if (!validateOrder()) return;
   
-  const summary = buildOrderSummary();
-  const url = `https://m.me/${FB_PAGE_USERNAME}?text=${encodeURIComponent(summary)}`;
-  window.open(url, "_blank");
+  const orderData = buildOrderData();
+  
+  const btn = document.getElementById("sendOrderBtn");
+  const originalText = btn.textContent;
+  btn.textContent = "Placing Order...";
+  btn.disabled = true;
+  
+  try {
+    const sheetSuccess = await sendOrderToSheet(orderData);
+    
+    if (sheetSuccess) {
+      showToastMessage("Order placed successfully. Check your email for invoice.");
+      
+      cart = {};
+      saveCart();
+      renderCart();
+      closeDrawer();
+      
+    } else {
+      showToastMessage("Order could not be placed. Please try again.");
+    }
+    
+  } catch (error) {
+    console.error('Error placing order:', error);
+    alert("There was an error placing your order. Please try again or contact us directly.");
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
 });
+
+function showToastMessage(message) {
+  toastMessage.innerHTML = message;
+  toast.classList.add("show");
+  
+  if (toastTimeout) {
+    clearTimeout(toastTimeout);
+  }
+  
+  toastTimeout = setTimeout(() => {
+    toast.classList.remove("show");
+  }, 3000);
+}
 
 document.getElementById("copyOrderBtn").addEventListener("click", async () => {
   if (!validateOrder()) return;
@@ -498,12 +621,15 @@ document.getElementById("copyOrderBtn").addEventListener("click", async () => {
     document.execCommand("copy");
     ta.remove();
   }
+  
   const confirmEl = document.getElementById("copyConfirm");
   confirmEl.hidden = false;
   setTimeout(() => { confirmEl.hidden = true; }, 2000);
+  
+  const orderData = buildOrderData();
+  await sendOrderToSheet(orderData);
 });
 
-// Remove error styling when user starts typing in any field
 document.getElementById("custName").addEventListener("focus", function() {
   this.style.borderColor = "";
 });

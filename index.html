@@ -38,26 +38,24 @@
         Choose your fragrance, choose your size, and we'll deliver it anywhere in Bangladesh.
     </p>
     <div class="hero-features">
-        <div>✓ Authentic Decants</div>
-        <div>✓ Secure Packaging</div>
-        <div>✓ Nationwide Delivery</div>
+        <div>Authentic Decants</div>
+        <div>Secure Packaging</div>
+        <div>Nationwide Delivery</div>
     </div>
 </section>
-
-<!-- ============ SEARCH BAR ============ -->
 
 <!-- ============ TOAST NOTIFICATION ============ -->
 <div class="toast" id="toast">
   <div class="toast-content">
-    <span class="toast-icon">✅</span>
-    <span class="toast-message" id="toastMessage">Added to cart!</span>
+    <span class="toast-icon">✓</span>
+    <span class="toast-message" id="toastMessage">Added to cart</span>
   </div>
 </div>
 
 <!-- ============ SEARCH BAR ============ -->
 <section class="filter-bar">
   <div class="search-group">
-    <input type="text" id="searchInput" placeholder="🔍 Search perfumes..." />
+    <input type="text" id="searchInput" placeholder="Search perfumes..." />
   </div>
 </section>
 
@@ -91,7 +89,7 @@
       <label class="delivery-option">
         <input type="radio" name="delivery" value="inside" checked>
         <span class="delivery-label">Inside Dhaka</span>
-        <span class="delivery-price" id="insidePriceLabel">৳70</span>
+        <span class="delivery-price" id="insidePriceLabel">৳80</span>
       </label>
       <label class="delivery-option">
         <input type="radio" name="delivery" value="outside">
@@ -101,10 +99,12 @@
     </div>
 
     <div class="customer-section">
-      <h3>Your Details <span class="optional-tag">(shown in summary)</span></h3>
-      <input type="text" id="custName" placeholder="Name">
-      <input type="text" id="custPhone" placeholder="Phone number">
-      <input type="text" id="custAddress" placeholder="Delivery address">
+      <h3>Your Details</h3>
+      <input type="text" id="custName" placeholder="Name *">
+      <input type="tel" id="custPhone" placeholder="Phone number (11 digits) *">
+      <input type="email" id="custEmail" placeholder="Email address *">
+      <input type="text" id="custAddress" placeholder="Delivery address *">
+      <p style="font-size:0.7rem;color:var(--text-light);margin-top:4px;">* Required fields</p>
     </div>
   </div>
 
@@ -123,7 +123,7 @@
     </div>
 
     <div class="action-buttons">
-      <button class="btn btn-primary" id="sendOrderBtn">Send Order to Our Page</button>
+      <button class="btn btn-primary" id="sendOrderBtn">Place Order</button>
       <button class="btn btn-secondary" id="copyOrderBtn">Copy Order Summary</button>
     </div>
     <p class="copy-confirm" id="copyConfirm" hidden>Copied to clipboard ✓</p>
